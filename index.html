@@ -378,6 +378,7 @@ if('serviceWorker' in navigator){
   var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbQIaAiVXDGovbShpZt4V-Kgp6i2DtUOgRZ8HHfIL8W8gZop1wgWju8oX0kUoE1i5Pfg/exec"; // termina em /exec
   // =====================================================================
   var SESSION_KEY="smge_sessao";
+  function getDeviceId(){var k="smge_dev";var d=localStorage.getItem(k);if(!d){d="d"+Date.now().toString(36)+Math.random().toString(36).slice(2,10);localStorage.setItem(k,d);}return d;}
   function qs(id){return document.getElementById(id);}
   function lockShow(){document.body.classList.add('locked');var o=qs('loginOverlay');o.classList.add('show');o.style.display='flex';}
   function unlock(nome){
@@ -403,7 +404,7 @@ if('serviceWorker' in navigator){
   function setMsg(t,c){var m=qs('loginMsg');if(m){m.textContent=t;m.style.color=c||'#a93226';}}
   async function doLogin(u,p){
     if(SCRIPT_URL.indexOf('COLE_AQUI')>-1) return {ok:false,msg:'App ainda não configurado (falta a URL do script).'};
-    var url=SCRIPT_URL+'?user='+encodeURIComponent(u)+'&pass='+encodeURIComponent(p);
+    var url=SCRIPT_URL+'?user='+encodeURIComponent(u)+'&pass='+encodeURIComponent(p)+'&dev='+encodeURIComponent(getDeviceId());
     return await jsonp(url);
   }
   function initForm(){
