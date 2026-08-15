@@ -1,4 +1,4 @@
-const CACHE = 'smge-login-v1';
+const CACHE = 'smge-login-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -18,11 +18,27 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
-      return res;
-    }).catch(() => caches.match('./index.html')))
-  );
+  const req = e.request;
+  const isHTML = req.mode === 'navigate' ||
+                 (req.headers.get('accept') || '').indexOf('text/html') > -1 ||
+                 req.url.endsWith('/') || req.url.endsWith('index.html');
+  if (isHTML) {
+    // HTML: rede primeiro (pega atualizações), cai no cache se estiver offline
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+        return res;
+      }).catch(() => caches.match(req).then(hit => hit || caches.match('./index.html')))
+    );
+  } else {
+    // Demais arquivos: cache primeiro (rápido/offline)
+    e.respondWith(
+      caches.match(req).then(hit => hit || fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+        return res;
+      }))
+    );
+  }
 });
